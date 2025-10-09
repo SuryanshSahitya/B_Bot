@@ -22,10 +22,10 @@ public final class Constants {
     INTAKE, // robot is intaking
     SHOOTING, // robot is shooting
     CLIMBING, // robot is climbing
-    DRIVE; // robot is doing nothing
+    IDLE; // robot is doing nothing
   }
 
-  public static RobotState currentState = RobotState.DRIVE;
+  public static RobotState currentState = RobotState.IDLE;
   public static RobotState getRobotState() {
     return currentState;
   }

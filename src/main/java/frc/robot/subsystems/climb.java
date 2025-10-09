@@ -53,6 +53,10 @@ public class climb extends SubsystemBase{
         climbWheel.set(speed);
     }
 
+    public void climbPivot(double speed) {
+        climbPivot.set(speed);
+    }
+
 
     public Command climbPivotCommand(double position) {
         return new Command() {
@@ -90,8 +94,38 @@ public class climb extends SubsystemBase{
       
             @Override
             public boolean isFinished() {
-              return false;
+              return climbPivot.getPosition().getValueAsDouble() >= position-0.5 && climbPivot.getPosition().getValueAsDouble()<= position+0.5;
             }
           };
     }
+
+
+
+
+    
+    public Command climbPivotSpeed(double speed) {
+      return new Command() {
+          @Override
+          public void initialize() {
+            
+          }
+    
+          @Override
+          public void execute() {
+            climbPivot.set(speed);
+          }
+    
+          @Override
+          public void end(boolean interrupted) {
+            climbPivot.set(0);
+
+
+          }
+    
+          @Override
+          public boolean isFinished() {
+            return false;
+          }
+        };
+  }
 }

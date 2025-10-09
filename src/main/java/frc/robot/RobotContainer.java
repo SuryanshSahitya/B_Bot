@@ -7,11 +7,13 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,10 +22,25 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.camera;
 import frc.robot.subsystems.climb;
 import frc.robot.subsystems.intake;
 
 public class RobotContainer {
+
+
+
+
+
+
+// todo list:
+// autos
+
+
+
+
+
+
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
     private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
@@ -43,11 +60,29 @@ public class RobotContainer {
 
     private final intake Intake = new intake();
     private final climb climb = new climb();
+    private final camera camera = new camera();
+    private final double Outtake_position1 = 4.77; // NEEDED TO BE CHANGED
+    private final double Outtake_position2 = 4; // NEEDED TO BE CHANGED
 
 
 
     public RobotContainer() {
         configureBindings();
+
+        NamedCommands.registerCommand("Outake Position1", 
+        new SequentialCommandGroup(
+            Intake.pivotCommand(Outtake_position1), // NEEDED TO BE CHANGED
+            Intake.runOnce(() -> Intake.intakeSpeed(-1))));
+
+        NamedCommands.registerCommand("Intake", 
+        new ConditionalCommand(
+            new ParallelCommandGroup(
+                Intake.pivotCommand(13.5),
+                Intake.runOnce(() -> Intake.intakeSpeed(0.5))), 
+            new ParallelCommandGroup(
+                Intake.pivotCommand(0.2),
+                Intake.runOnce(() -> Intake.intakeSpeed(0.05))), 
+            () -> Constants.getRobotState() == Constants.RobotState.IDLE));
     }
 
     private void configureBindings() {
@@ -58,7 +93,8 @@ public class RobotContainer {
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(driverJoy.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
                     .withVelocityY(driverJoy.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-driverJoy.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                    .withRotationalRate(-driverJoy.getRightX() * MaxAngularRate)
+                    .withDeadband(0.3).withRotationalDeadband(0.3) // Drive counterclockwise with negative X (left)
                     )
         );
 
@@ -75,6 +111,8 @@ public class RobotContainer {
         ));
 
         
+        // DRIVE CONTROLS
+
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
@@ -88,42 +126,59 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-
-
-        //operator controls
-        // intake
+        // climb down w setpoint
         driverJoy.leftBumper()
+            .whileTrue(
+                new SequentialCommandGroup(
+                Intake.pivotCommand(13.5),
+                climb.climbPivotCommand(100)));
+
+        // climb up w setpoint
+        driverJoy.rightBumper()
+            .whileTrue(climb.climbPivotCommand(10));
+
+        // climb down motor run
+        climb.climbPivotSpeed(driverJoy.getLeftTriggerAxis()*0.7);
+        // climb up motor run
+        climb.climbPivotSpeed(driverJoy.getRightTriggerAxis()*-0.7);
+
+        //OPERATOR CONTROLS
+
+        // intake
+        operatorJoy.leftBumper()
             .whileTrue(
                 new ParallelCommandGroup(
                 Intake.pivotCommand(13.5),
                 Intake.runOnce(() -> Intake.intakeSpeed(0.5))))
             .whileFalse(
                 new ParallelCommandGroup(
-                Intake.pivotCommand(0.5), // needed to changed
+                Intake.pivotCommand(0.2), // needed to changed
                 Intake.runOnce(() -> Intake.intakeSpeed(0.05))));
-// outtake position 1
-            driverJoy.rightBumper()
+
+        // outtake position 1
+        operatorJoy.rightBumper()
                 .whileTrue(
                     new ParallelCommandGroup(
-                    Intake.pivotCommand(4.77), // NEEDED TO BE CHANGED
+                    Intake.pivotCommand(Outtake_position1), // NEEDED TO BE CHANGED
                     Intake.runOnce(() -> Intake.intakeSpeed(-1))))
                 .whileFalse(
                     new ParallelCommandGroup(
-                    Intake.pivotCommand(0.5),
+                    Intake.pivotCommand(0.2),
                     Intake.runOnce(() -> Intake.intakeSpeed(0))));
 
-    // outtake position 2
-    driverJoy.a()
-    .whileTrue(
-        new ParallelCommandGroup(
-        Intake.pivotCommand(0.5), // needed to changed
-        Intake.runOnce(() -> Intake.intakeSpeed(-1))))
-    .whileFalse(
-        new ParallelCommandGroup(
-        Intake.pivotCommand(0.5),
-        Intake.runOnce(() -> Intake.intakeSpeed(0))));
+        // outtake position 2
+        operatorJoy.b()
+                .whileTrue(
+                    new ParallelCommandGroup(
+                    Intake.pivotCommand(Outtake_position2), // needed to changed
+                    Intake.runOnce(() -> Intake.intakeSpeed(-1))))
+                .whileFalse(
+                    new ParallelCommandGroup(
+                    Intake.pivotCommand(0.2),
+                    Intake.runOnce(() -> Intake.intakeSpeed(0))));
 
     }
+
 
     public Command getAutonomousCommand() {
         return Commands.print("No autonomous command configured");

@@ -32,6 +32,9 @@ public class intake extends SubsystemBase{
     slot0.kI = 0; // no output for integrated error
     slot0.kD = 0.0; // A velocity error of 1 rps results in 0.1 V output
 
+
+
+    // tune these
     motionMagicConfigs.MotionMagicCruiseVelocity = 70; // Target cruise velocity of 80 rps
     motionMagicConfigs.MotionMagicAcceleration = 200; // Target acceleration of 160 rps/s (0.5 seconds)
     motionMagicConfigs.MotionMagicJerk = 400;// Target jerk of 1600 rps/s/s (0.1 seconds)
@@ -50,12 +53,18 @@ public class intake extends SubsystemBase{
         SmartDashboard.putNumber("Intake motor current", intakeMotor.getStatorCurrent().getValueAsDouble());
         SmartDashboard.putNumber("Intake motor velocity", intakeMotor.getVelocity().getValueAsDouble());
 
+
+        //Piece is being shot out
         if (intakeMotor.getVelocity().getValueAsDouble() >= 100) {
           Constants.setRobotState(Constants.RobotState.SHOOTING);
+
+        // Piece is being intaked
         } else if (intakeMotor.getStatorCurrent().getValueAsDouble() <= 20 && intakeMotor.getVelocity().getValueAsDouble() <= -100) {
           Constants.setRobotState(Constants.RobotState.INTAKE);
+          
+        // Piece is already intaked/Being Held
         } else if (intakeMotor.getStatorCurrent().getValueAsDouble() > 20) {
-          Constants.setRobotState(Constants.RobotState.DRIVE);
+          Constants.setRobotState(Constants.RobotState.IDLE);
         }
     }
 
@@ -100,7 +109,7 @@ public class intake extends SubsystemBase{
       
             @Override
             public boolean isFinished() {
-              return false;
+              return pivotMotor.getPosition().getValueAsDouble() >= position-1 && pivotMotor.getPosition().getValueAsDouble()<= position+1;
             }
           };
     }
