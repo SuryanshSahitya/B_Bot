@@ -25,24 +25,24 @@ public class intake extends SubsystemBase{
 
     public intake() {
       // motion magic stuff, comments are there for understanding
-    slot0.kS = 0.15;
-    slot0.kV = 0.10; // A velocity target of 1 rps results in 0.12 V output
-    slot0.kA = 0.01; // An acceleration of 1 rps/s requires 0.01 V output
-    slot0.kP = 0.01; // A position error of 2.5 rotations results in 12 V output
-    slot0.kI = 0; // no output for integrated error
-    slot0.kD = 0.0; // A velocity error of 1 rps results in 0.1 V output
-
-
-
-    // tune these
-    motionMagicConfigs.MotionMagicCruiseVelocity = 70; // Target cruise velocity of 80 rps
-    motionMagicConfigs.MotionMagicAcceleration = 200; // Target acceleration of 160 rps/s (0.5 seconds)
-    motionMagicConfigs.MotionMagicJerk = 400;// Target jerk of 1600 rps/s/s (0.1 seconds)
-
-
-    pivotMotor.getConfigurator().apply(talonFXConfiguration); // aplies motion magic to the motor
-    pivotMotor.setNeutralMode(NeutralModeValue.Brake); // setting the motor to brake when not used by driver
-    intakeMotor.setNeutralMode(NeutralModeValue.Coast);
+      slot0.kG = 0.3; // A gear ratio of 4:1 results in 0.25 output
+      slot0.kS = 0.3;
+      slot0.kV = 0.5; // A velocity target of 1 rps results in 0.12 V output
+      slot0.kA = 0.02; // An acceleration of 1 rps/s requires 0.01 V output
+      slot0.kP = 12; // A position error of 2.5 rotations results in 12 V output
+      slot0.kI = 0; // no output for integrated error
+      slot0.kD = 0.; // A velocity error of 1 rps results in 0.1 V output
+  
+      motionMagicConfigs.MotionMagicCruiseVelocity = 200; // Target cruise velocity of 80 rps
+      motionMagicConfigs.MotionMagicAcceleration = 400; // Target acceleration of 160 rps/s (0.5 seconds)
+      motionMagicConfigs.MotionMagicJerk = 800; // Target jerk of 1600 rps/s/s (0.1 seconds)\
+  
+      pivotMotor.getConfigurator().apply(talonFXConfiguration);
+      pivotMotor.setNeutralMode(NeutralModeValue.Brake);
+    
+    
+    
+      intakeMotor.setNeutralMode(NeutralModeValue.Coast);
 
     }
 
@@ -68,9 +68,34 @@ public class intake extends SubsystemBase{
         }
     }
 
-    public void intakeSpeed(double speed) {
+    public void intakeSpeed2(double speed) {
         intakeMotor.set(speed);
     }
+
+    public Command intakemotorSpeed(double speed) {
+      return new Command() {
+          @Override
+          public void initialize() {
+          }
+    
+          @Override
+          public void execute() {
+          intakeMotor.set(speed);
+          }
+    
+          @Override
+          public void end(boolean interrupted) {
+            pivotMotor.set(0);
+
+
+          }
+    
+          @Override
+          public boolean isFinished() {
+            return false;
+            }
+        };
+  }
 
 
     public Command pivotCommand(double position) {

@@ -27,6 +27,12 @@
           "data": {
             "name": null
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "OnePiece3"
+          }
         }
       ]
     }

@@ -47,12 +47,13 @@ public class climb extends SubsystemBase{
     @Override
     public void periodic(){
         SmartDashboard.putNumber("Climb Pivot motor position", climbPivot.getPosition().getValueAsDouble());
-        SmartDashboard.putNumber("Climb wheel current", climbWheel.getStatorCurrent().getValueAsDouble()); 
+        SmartDashboard.putNumber("Climb wheel current", climbWheel.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Climb wheel velocity", climbWheel.getVelocity().getValueAsDouble()); 
 
-        if (climbWheel.getStatorCurrent().getValueAsDouble() <= 20) {
+        if (climbWheel.getVelocity().getValueAsDouble() >= 100) {
           Constants.setRobotState(Constants.RobotState.CLIMBING);
 
-        } else if (climbWheel.getStatorCurrent().getValueAsDouble() > 20) {
+        } else if (climbWheel.getVelocity().getValueAsDouble() < 100) {
           Constants.setRobotState(Constants.RobotState.CLIMBED);
         }
         
