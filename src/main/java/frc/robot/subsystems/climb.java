@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class climb extends SubsystemBase{
     public TalonFX climbPivot = new TalonFX(9);
@@ -45,7 +46,15 @@ public class climb extends SubsystemBase{
 
     @Override
     public void periodic(){
-        SmartDashboard.putNumber("Climb motor position", climbPivot.getPosition().getValueAsDouble());  
+        SmartDashboard.putNumber("Climb Pivot motor position", climbPivot.getPosition().getValueAsDouble());
+        SmartDashboard.putNumber("Climb wheel current", climbWheel.getStatorCurrent().getValueAsDouble()); 
+
+        if (climbWheel.getStatorCurrent().getValueAsDouble() <= 20) {
+          Constants.setRobotState(Constants.RobotState.CLIMBING);
+
+        } else if (climbWheel.getStatorCurrent().getValueAsDouble() > 20) {
+          Constants.setRobotState(Constants.RobotState.CLIMBED);
+        }
         
     }
 

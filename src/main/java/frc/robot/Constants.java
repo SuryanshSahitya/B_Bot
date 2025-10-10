@@ -22,6 +22,7 @@ public final class Constants {
     INTAKE, // robot is intaking
     SHOOTING, // robot is shooting
     CLIMBING, // robot is climbing
+    CLIMBED,
     IDLE; // robot is doing nothing
   }
 
